@@ -29,7 +29,7 @@ pub use vault::{RootAccount, Vault};
 pub mod vault;
 
 const MSG_MAX_SIZE: usize = u8::MAX as usize;
-type Message = ArrayVec<u8, { MSG_MAX_SIZE }>;
+pub type Message = ArrayVec<u8, { MSG_MAX_SIZE }>;
 
 /// Wallet is the main interface to interact with the accounts of a user.
 ///

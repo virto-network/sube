@@ -7,7 +7,7 @@ use parity_scale_codec::Encode;
 use serde::{Deserialize, Serialize};
 use serde_json::{self, Error};
 use serde_wasm_bindgen;
-use std::{collections::HashMap, fmt, string};
+use std::{fmt, string};
 use sube::{
     http::{Backend as HttpBackend, Url},
     meta::Meta,
