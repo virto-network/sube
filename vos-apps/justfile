@@ -1,0 +1,26 @@
+default:
+    just --summary
+
+build app:
+    #!/usr/bin/env nu
+    let rustflags = [
+        "-C relocation-model=pie",
+        "-C link-arg=--emit-relocs",
+        "-C link-arg=--unique",
+        $"--remap-path-prefix=($env.PWD)=",
+        $"--remap-path-prefix=($env.HOME)=~"
+    ]
+    $env.RUSTFLAGS = ($rustflags | str join " ")
+    cargo build -q --release --bin app-{{ app }} -p app-{{ app }}
+    mkdir out
+    polkatool link --run-only-if-newer -s target/riscv32ema-unknown-none-elf/release/app-{{ app }} -o out/app-{{ app }}.pvm
+
+toolchain:
+    #!/usr/bin/env nu
+    if (rustup  toolchain list | lines | any { $in =~ "riscv32em-nightly" })
+    { error make { msg: "Already installed" } }
+
+    const TOOLCHAIN = "riscv32em-nightly-2024-01-05-r0-x86_64-unknown-linux-gnu"
+    http get $"https://github.com/koute/rustc-rv32e/releases/download/nightly-2024-01-05-r0/rust-($TOOLCHAIN).tar.xz" | tar xJ -C .
+    mv $"(glob rust-riscv32em* | first)/($TOOLCHAIN)" ~/.rustup/toolchains/
+    rm -r rust-riscv32em*

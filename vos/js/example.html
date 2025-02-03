@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pass component</title>
+  <script async src="vos-connect.js" type="module"></script>
+  <style>
+    :root {
+      --color-txt: darkslategray;
+      --color-accent: lightgreen;
+      --color-outline: darkseagreen;
+    }
+
+    body {
+      all: initial;
+      color: var(--color-txt);
+      font-family: sans;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column-reverse;
+    }
+
+    vos-connect {
+      border-top: 1px solid var(--color-outline);
+      min-height: 2rem;
+      width: 100%;
+
+      /* login form can also be adjusted directly */
+      &::part(connect-form) {
+        height: 6rem;
+      }
+    }
+
+    #messages {
+      display: flex;
+      flex: 1;
+      flex-direction: column-reverse;
+      overflow-y: auto;
+
+      & mx-msg:not(:first-child) {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+      }
+    }
+
+    #welcome {
+      margin: auto;
+      text-align: center;
+
+      & h1 {
+        font-size: clamp(2em, 5vw, 5em);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- login form and entry point to interact with the VOS -->
+  <vos-connect id="vos" servers="virto.community matrix.org">
+    <!-- you can inject some extra context to the login form -->
+    <p>Create or connect a matrix account</p>
+    <!-- optional content shown once connected -->
+    <!-- this example form uses a switcher to try out different kinds of inputs to send different kinds of commands to VOS -->
+    <form id="vos-input" slot="connected">
+      <input-switcher name="type" default="src">
+        <template data-value="msg" data-ic="✎" data-option="Text message">
+          <mx-prompt name="msg" helpers="emoji"></mx-prompt>
+        </template>
+        <template data-value="src" data-ic="⌨︎" data-option="Code">
+          <mx-prompt name="src" class="code"></mx-prompt>
+        </template>
+        <template data-value="audio" data-ic="♫" data-option="Audio">
+          <i>soon</i>
+        </template>
+        <template data-value="files" data-ic="📄" data-option="Files">
+          <i>soon</i>
+        </template>
+      </input-switcher>
+    </form>
+  </vos-connect>
+
+  <main id="messages">
+    <section id="welcome">
+      <h1>VOS</h1>
+      <p>Example application</p>
+    </section>
+  </main>
+</body>
+<script type="module">
+  import {streamingFormData} from './form-util.js'
+  const messages = document.getElementById('messages')
+  let welcome = document.getElementById('welcome')
+  for await (let data of streamingFormData('form')) {
+    if (welcome) welcome = welcome.remove()
+    console.log('got msg', data)
+
+    //let msg = Object.assign(document.createElement('mx-msg'), {message})
+    //messages.insertBefore(msg, messages.firstChild)
+    //msg.scrollIntoView({behavior: 'smooth'})
+  }
+</script>
+
+</html>
