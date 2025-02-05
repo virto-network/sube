@@ -17,6 +17,10 @@
     "default": "./dist/umd/auth.umd.js"
   },
   "devDependencies": {
+    "@polkadot/api": "^15.5.2",
+    "@polkadot/keyring": "^13.3.1",
+    "@polkadot/util-crypto": "^13.3.1",
+    "@polkadot/types": "^15.5.2",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.12.0",
     "jest": "^29.7.0",

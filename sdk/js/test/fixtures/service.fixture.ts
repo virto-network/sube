@@ -3,8 +3,13 @@ import { toBase64 } from '../../src/utils/base64';
 
 export class MockServiceRegister {
   private client: import('puppeteer').CDPSession | undefined;
+  private credentialId: string | undefined;
 
-  constructor(private page: Page) {}
+  constructor(private page: Page) { }
+
+  getCredentialId() {
+    return this.credentialId;
+  }
 
   async setup() {
     await this.page.setRequestInterception(true);
@@ -37,10 +42,51 @@ export class MockServiceRegister {
       }
 
       if (url.endsWith("/post-register") && method === "POST") {
+        // Parse the JSON body so we can grab the credential ID
+        const postData = req.postData() || "{}";
+        try {
+          const bodyJson = JSON.parse(postData);
+          if (bodyJson.id) {
+            this.credentialId = bodyJson.id;
+          }
+        } catch (err) {
+          // ignore parse errors
+        }
+
+        req.respond({
+          status: 200,
+          headers: this.getCorsHeaders(),
+          body: JSON.stringify({ success: true }),
+        });
+        return;
+      }
+
+      if (url.endsWith("/pre-connect") && method === "POST") {
+        req.respond({
+          status: 200,
+          headers: this.getCorsHeaders(),
+          body: JSON.stringify(this.getPreConnectResponse())
+        });
+        return;
+      }
+
+      if (url.endsWith("/post-connect") && method === "POST") {
         req.respond({
           status: 200,
           headers: this.getCorsHeaders(),
           body: JSON.stringify({ success: true })
+        });
+        return;
+      }
+
+      if (url.endsWith("/pre-connect-session") && method === "POST") {
+        req.respond({
+          status: 200,
+          headers: this.getCorsHeaders(),
+          body: JSON.stringify({
+            success: true,
+            extrinsic: new Uint8Array([1, 2, 3, 4]), // Mock extrinsic data
+          })
         });
         return;
       }
@@ -71,6 +117,17 @@ export class MockServiceRegister {
       <body>
         <script type="module">
           import Auth from '/dist/esm/auth.js';
+
+          window.signSendAndWait = async (tx, signer) => {
+            // Return a mocked result with an event that has method "SessionCreated"
+            return {
+              isInBlock: true,
+              events: [
+                { event: { method: "SessionCreated" } }
+              ]
+            };
+          };
+          
           window.Auth = Auth;
         </script>
       </body>
@@ -94,6 +151,8 @@ export class MockServiceRegister {
     const userIdBytes = new Uint8Array([9, 9, 9, 9, 9, 9, 9, 9]);
     const userIdB64 = toBase64(userIdBytes);
 
+    console.log("userIdB64", userIdB64);
+
     return {
       publicKey: {
         challenge: challengeB64,
@@ -110,4 +169,29 @@ export class MockServiceRegister {
       }
     };
   }
+
+  private getPreConnectResponse() {
+    const challengeBytes = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+    const challengeB64 = toBase64(challengeBytes);
+
+    let allowCredentials: { id: string; type: string; transports: string[]; }[] = [];
+    if (this.credentialId) {
+      allowCredentials = [
+        {
+          id: this.credentialId,
+          type: "public-key",
+          transports: ["usb", "internal"],
+        },
+      ];
+    }
+
+    return {
+      publicKey: {
+        challenge: challengeB64,
+        allowCredentials,
+        timeout: 60000,
+      },
+    };
+  }
+
 }

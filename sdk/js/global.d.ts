@@ -10,6 +10,7 @@ import { Auth } from "./src/auth";
 declare global {
   interface Window {
     Auth: typeof Auth;
+    signSendAndWait?: <T = any>(tx: any, signer: any) => Promise<T>;
   }
 }
 
