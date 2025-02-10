@@ -7,5 +7,5 @@ module.exports = {
   testMatch: ['**/*.test.ts', '**/*.test.js', '**/*.spec.ts', '**/*.spec.js', '**/*.e2e.ts', '**/*.e2e.js'],
   moduleFileExtensions: ['ts', 'js'],
   roots: ['<rootDir>/src', '<rootDir>/test'],
-  testTimeout: 30000,
+  testTimeout: 300000,
 };

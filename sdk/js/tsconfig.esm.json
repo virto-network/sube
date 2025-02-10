@@ -8,7 +8,11 @@
     "declarationDir": "./dist/esm",
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "moduleResolution": "node",
   },
-  "include": ["src/**/*"]
+  "include": [
+    "src/**/*",
+    "global.d.ts"
+  ]
 }
