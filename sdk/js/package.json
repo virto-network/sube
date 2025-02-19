@@ -5,7 +5,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "dev": "vite",
-    "build": "npm run build:esm && npm run build:cjs && npm run build:umd",
+    "build": "npm run build:esm",
     "build:esm": "tsc --project tsconfig.esm.json",
     "build:cjs": "tsc --project tsconfig.cjs.json",
     "build:umd": "vite build --config vite.config.mts",
@@ -19,12 +19,15 @@
   "devDependencies": {
     "@types/jest": "^29.5.14",
     "@types/node": "^22.12.0",
+    "@virtonetwork/libwallet": "file:../../lib/libwallet/js",
+    "@virtonetwork/sube": "file:../../lib/sube/sube-js",
     "jest": "^29.7.0",
     "jest-environment-puppeteer": "^11.0.0",
     "jest-puppeteer": "^11.0.0",
     "puppeteer": "^24.1.1",
     "ts-jest": "^29.2.5",
     "typescript": "^5.7.3",
-    "vite": "^6.0.11"
+    "vite": "^6.0.11",
+    "vite-plugin-wasm": "^3.4.1"
   }
 }

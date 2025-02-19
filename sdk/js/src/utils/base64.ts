@@ -14,3 +14,10 @@ export function toBase64(buffer: Uint8Array): string {
     }
     return btoa(binary);
 }
+export function fromBase64Url(str: string): ArrayBuffer {
+    let b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4) {
+        b64 += '=';
+    }
+    return fromBase64(b64);
+}

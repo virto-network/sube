@@ -1,4 +1,4 @@
-import { sube } from 'sube-js';
+import { sube } from '@virtonetwork/sube';
 import  { JsWallet } from '@virtonetwork/libwallet';
 
 export function setupSign(element: HTMLButtonElement) {
