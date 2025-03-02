@@ -34,7 +34,7 @@ impl<R: Rpc> Backend for RpcClient<R> {
         &self,
         keys: Vec<RawStorageKey>,
         block: Option<u32>,
-    ) -> crate::Result<impl Iterator<Item = (Vec<u8>, Vec<u8>)>> {
+    ) -> crate::Result<impl Iterator<Item = (Vec<u8>, Option<Vec<u8>>)>> {
         let keys = serde_json::to_string(
             &keys
                 .iter()
@@ -54,6 +54,23 @@ impl<R: Rpc> Backend for RpcClient<R> {
             vec![keys]
         };
 
+        log::info!("params: {:?}", params);
+        for s in &params {
+            log::info!("s: {:?}", s);
+        }
+
+        let x = self
+        .0
+        .rpc::<Vec<StorageChangeSet>>(
+            "state_queryStorageAt",
+            params
+                .iter()
+                .map(|s| s.as_ref())
+                .collect::<Vec<_>>()
+                .as_slice(),
+        )
+        .await;
+        log::info!("x: {:?}", x);
         let result = self
             .0
             .rpc::<Vec<StorageChangeSet>>(
@@ -69,18 +86,18 @@ impl<R: Rpc> Backend for RpcClient<R> {
                 log::error!("error state_queryStorageAt {:?}", err);
                 crate::Error::StorageKeyNotFound
             })?;
-
+        
         let result = match result.into_iter().next() {
             None => vec![],
             Some(change_set) => change_set
                 .changes
                 .into_iter()
-                .map(|[k, v]| {
-                    log::info!("key: {} value: {}", k, v);
+                .map(|(k, v)| {
+                    log::info!("key: {:?} value: {:?}", k, v);
 
                     (
                         hex::decode(&k[2..]).expect("to be an hex"),
-                        hex::decode(&v[2..]).expect("to be an hex"),
+                        v.map(|v| hex::decode(&v[2..]).expect("to be an hex")),
                     )
                 })
                 .collect(),
