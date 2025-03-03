@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Dropdown Example</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+    <style>
+
+/*Trying this selectors to see if styles are seen when using the library somewhere else*/
+        :where(:root), :host {
+            /*From Dani's proyect*/
+            --white: white;
+            --whitesmoke: whitesmoke;
+            --darkslategray: darkslategray;
+            --lightgreen: lightgreen;
+            --darkseagreen: darkseagreen;
+            --black: #0000004D;
+            /*From Figma*/
+            --green: #24AF37;
+            --whitish-green: #c6ebc7;
+            --dark-green: #006B0A;
+            --extra-light-green: #DDFBE0;
+            /*Dialog background*/
+            --gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.5) 100%), radial-gradient(84.04% 109.28% at 10.3% 12.14%, rgba(86, 201, 96, 0.5) 0%, rgba(198, 235, 199, 0) 98.5%);
+            /*Fonts*/
+            --font-primary: Outfit, sans-serif;
+            --font-secondary: Plus Jakarta, sans-serif;
+            /* Unused by now*/
+            --color-accent-rgb: rgb(72, 61, 139);
+            --color-text-alt: #446;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 12px;
+            font-family: var(--font-primary);
+        }
+
+        body {
+            background-color: var(--whitesmoke);
+        }
+
+    </style>
+</head>
+<body>
+
+<h2>Avatar</h2>
+
+<virto-avatar label="Default Avatar"></virto-avatar>
+<virto-avatar initials="JD" label="John Doe"></virto-avatar>
+<virto-avatar shape="rounded-square" label="Rounded Square Avatar"></virto-avatar>
+<virto-avatar shape="square" initials="JD" label="John Doe"></virto-avatar>
+<virto-avatar size="small" label="Small Avatar"></virto-avatar>
+<virto-avatar size="large" label="Large Avatar"></virto-avatar>
+
+<h2>Buttons</h2>
+
+<virto-button label="Hola"></virto-button>
+<virto-button label="Chau" variant="secondary"></virto-button>
+
+<h2>Input</h2>
+
+<virto-input label="Name" placeholder="Enter your name"></virto-input>
+<virto-input label="Email" type="email" placeholder="Enter your email" required></virto-input>
+<virto-input label="Password" type="password" placeholder="Enter your password"></virto-input>
+<virto-input label="Username" placeholder="Choose a username" required minlength="3" hint="Must be at least 3 characters long"></virto-input>
+<virto-input label="Age" type="number" min="0" max="120" step="1"></virto-input>
+<virto-input label="Birthday" type="date"></virto-input>
+<virto-input label="Bio" placeholder="Tell us about yourself" rows="4"></virto-input>
+<virto-input label="Read-only" value="This cannot be edited" readonly></virto-input>
+<virto-input label="Disabled" value="This input is disabled" disabled></virto-input>
+<virto-input label="Phone" type="tel" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" placeholder="123-456-7890"></virto-input>
+<virto-input label="Comment" minlength="10" maxlength="100" placeholder="Enter 10-100 characters"></virto-input>
+<virto-input label="Country" autocomplete="country-name" placeholder="Start typing a country name"></virto-input>
+<virto-input label="Autofocus" placeholder="This input is focused on page load" autofocus></virto-input>
+
+<script type="module">
+        import './main.js';
+</script>
+</body>
+</html>
