@@ -34,7 +34,7 @@ impl<R: Rpc> Backend for RpcClient<R> {
         &self,
         keys: Vec<RawStorageKey>,
         block: Option<u32>,
-    ) -> crate::Result<impl Iterator<Item = (Vec<u8>, Vec<u8>)>> {
+    ) -> crate::Result<impl Iterator<Item = (Vec<u8>, Option<Vec<u8>>)>> {
         let keys = serde_json::to_string(
             &keys
                 .iter()
@@ -75,12 +75,12 @@ impl<R: Rpc> Backend for RpcClient<R> {
             Some(change_set) => change_set
                 .changes
                 .into_iter()
-                .map(|[k, v]| {
-                    log::info!("key: {} value: {}", k, v);
+                .map(|(k, v)| {
+                    log::debug!("key: {:?} value: {:?}", k, v);
 
                     (
                         hex::decode(&k[2..]).expect("to be an hex"),
-                        hex::decode(&v[2..]).expect("to be an hex"),
+                        v.map(|v| hex::decode(&v[2..]).expect("to be an hex")),
                     )
                 })
                 .collect(),

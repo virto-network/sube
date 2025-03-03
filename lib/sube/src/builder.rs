@@ -280,8 +280,8 @@ impl Backend for &AnyBackend {
         &self,
         keys: Vec<RawKey>,
         block: Option<u32>,
-    ) -> crate::Result<impl Iterator<Item = (RawKey, RawValue)>> {
-        let result: Box<dyn Iterator<Item = (RawKey, RawValue)>> = match self {
+    ) -> crate::Result<impl Iterator<Item = (RawKey, Option<RawValue>)>> {
+        let result: Box<dyn Iterator<Item = (RawKey, Option<RawValue>)>> = match self {
             #[cfg(any(feature = "http", feature = "http-web"))]
             AnyBackend::Http(b) => Box::new(b.get_storage_items(keys, block).await?),
             #[cfg(feature = "ws")]
@@ -292,7 +292,7 @@ impl Backend for &AnyBackend {
         Ok(result)
     }
 
-    async fn get_storage_item(&self, key: RawKey, block: Option<u32>) -> crate::Result<Vec<u8>> {
+    async fn get_storage_item(&self, key: RawKey, block: Option<u32>) -> crate::Result<Option<Vec<u8>>> {
         match self {
             #[cfg(any(feature = "http", feature = "http-web"))]
             AnyBackend::Http(b) => b.get_storage_item(key, block).await,

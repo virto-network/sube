@@ -21,7 +21,7 @@ pub use core::fmt::Display;
 use core::iter::Empty;
 
 pub use frame_metadata::RuntimeMetadataPrefixed;
-pub use signer::{Signer, SignerFn, Bytes};
+pub use signer::{Bytes, Signer, SignerFn};
 
 pub use meta::Metadata;
 #[cfg(feature = "v14")]
@@ -103,7 +103,12 @@ async fn query<'m>(
     {
         if !key_res.is_partial() {
             let res = chain.get_storage_item(key_res.key(), block).await?;
-            return Ok(Response::Value(Value::new(res, key_res.ty, &meta.types)));
+
+            let value = res.map_or(Response::None, |res| {
+                Response::Value(Value::new(res, key_res.ty, &meta.types))
+            });
+
+            return Ok(value);
         }
 
         let res = chain.get_keys_paged(key_res.key(), 1000, None).await?;
@@ -127,7 +132,9 @@ async fn query<'m>(
                     })
                     .collect::<Vec<Value<'m>>>();
 
-                let value = Value::new(data.to_vec(), key_res.ty, &meta.types);
+                let value = data.map_or(None, |data| {
+                    Some(Value::new(data.to_vec(), key_res.ty, &meta.types))
+                });
                 (keys, value)
             })
             .collect::<Vec<_>>();
@@ -178,21 +185,26 @@ where
         .pallet_by_name(&pallet)
         .ok_or_else(|| Error::PalletNotFound(pallet))?;
     let calls_ty = pallet.calls.as_ref().ok_or(Error::CallNotFound)?.ty.id;
+
+    log::debug!("calls_ty: {:?}", calls_ty);
+
     let type_registry = &meta.types;
 
     let mut encoded_call = vec![pallet.index];
 
-    let call_data = scales::to_vec_with_info(
-        &json!({
-            &item_or_call.to_lowercase(): &tx_data.body
-        }),
-        (type_registry, calls_ty).into(),
-    )
-    .map_err(|e| Error::Encode(e.to_string()))?;
+    log::debug!("tx_data: {:?}", tx_data);
+    let json = &json!({
+        &item_or_call.to_lowercase(): &tx_data.body
+    });
+    log::debug!("json_body: {:?}", &json);
+
+    let call_data = scales::to_vec_with_info(&json, (type_registry, calls_ty).into())
+        .map_err(|e| Error::Encode(e.to_string()))?;
 
     encoded_call.extend(&call_data);
 
     let from_account = signer.account();
+    log::debug!("from_account: {:?}", hex::encode(from_account.as_ref()));
 
     let extra_params = {
         // ImmortalEra
@@ -217,6 +229,10 @@ where
                         let account_info: AccountInfo =
                             serde_json::from_str(&str).expect("it must serialize");
                         Ok(account_info.nonce)
+                    }
+                    Response::None => {
+                        log::warn!("account not found");
+                        Ok(0)
                     }
                     _ => Err(Error::AccountNotFound),
                 }
@@ -331,8 +347,9 @@ where
 #[serde(untagged)]
 pub enum Response<'m> {
     Void,
+    None,
     Value(scales::Value<'m>),
-    ValueSet(Vec<(Vec<scales::Value<'m>>, scales::Value<'m>)>),
+    ValueSet(Vec<(Vec<scales::Value<'m>>, Option<scales::Value<'m>>)>),
     Meta(&'m Metadata),
     Registry(&'m PortableRegistry),
 }
@@ -341,10 +358,11 @@ impl From<Response<'_>> for Vec<u8> {
     fn from(res: Response) -> Self {
         match res {
             Response::Value(v) => v.as_ref().into(),
+            Response::None => vec![0],
             Response::Meta(m) => m.encode(),
             Response::Registry(r) => r.encode(),
             Response::ValueSet(r) => r.encode(),
-            Response::Void => vec![0],
+            Response::Void => vec![],
         }
     }
 }
@@ -357,11 +375,10 @@ fn parse_uri(uri: &str) -> Option<(String, String, Vec<String>)> {
     Some((pallet, item, map_keys))
 }
 
-
 #[derive(Deserialize, Serialize, Debug)]
 pub struct StorageChangeSet {
     block: String,
-    changes: Vec<[String; 2]>,
+    changes: Vec<(String, Option<String>)>,
 }
 
 pub type RawKey = Vec<u8>;
@@ -385,9 +402,13 @@ pub trait Backend {
         &self,
         keys: Vec<RawKey>,
         block: Option<u32>,
-    ) -> crate::Result<impl Iterator<Item = (RawKey, RawValue)>>;
+    ) -> crate::Result<impl Iterator<Item = (RawKey, Option<RawValue>)>>;
 
-    async fn get_storage_item(&self, key: RawKey, block: Option<u32>) -> crate::Result<RawValue> {
+    async fn get_storage_item(
+        &self,
+        key: RawKey,
+        block: Option<u32>,
+    ) -> crate::Result<Option<RawValue>> {
         let res = self.get_storage_items(vec![key], block).await?;
         log::info!("before it died");
         res.into_iter()
@@ -419,8 +440,8 @@ impl Backend for Offline {
         &self,
         _keys: Vec<RawKey>,
         _block: Option<u32>,
-    ) -> crate::Result<impl Iterator<Item = (Vec<u8>, Vec<u8>)>> {
-        Err::<Empty<(RawKey, RawValue)>, _>(Error::ChainUnavailable)
+    ) -> crate::Result<impl Iterator<Item = (RawKey, Option<RawValue>)>> {
+        Err::<Empty<(RawKey, Option<RawValue>)>, _>(Error::ChainUnavailable)
     }
 
     async fn get_keys_paged(
@@ -470,7 +491,7 @@ pub enum Error {
     CantDecodeReponseForMeta,
     CantDecodeRawQueryResponse,
     CantFindMethodInPallet,
-    BadBlockNumber
+    BadBlockNumber,
 }
 
 impl fmt::Display for Error {
