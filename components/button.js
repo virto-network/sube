@@ -1,5 +1,4 @@
-import './main.js';
-import { html, css } from './utils.js';
+import { html, css } from "./utils.js"
 
 const buttonTp = html`
   <wa-button>

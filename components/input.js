@@ -1,5 +1,4 @@
-import './main.js';
-import { html, css } from './utils.js';
+import { html, css } from "./utils.js"
 
 const inputTp = html`
     <wa-input></wa-input>
@@ -83,7 +82,6 @@ export class InputVirto extends HTMLElement {
     this.waInput.addEventListener("change", this.handleChange.bind(this))
     this.waInput.addEventListener("blur", this.validateInput.bind(this))
 
-    // Set initial value
     if (this.hasAttribute("value")) {
       this.value = this.getAttribute("value")
     }
@@ -91,7 +89,7 @@ export class InputVirto extends HTMLElement {
   }
 
   get value() {
-    const value = this.waInput.value
+    const value = this.waInput.value || "";
     console.log("Getting value:", value)
     return value
   }
@@ -156,6 +154,14 @@ export class InputVirto extends HTMLElement {
         if (!emailRegex.test(value)) {
             isValid = false;
             errorMessage = 'Please enter a valid email address.';
+        }
+    }
+
+    if (type === 'server') {
+        const serverRegex = /^@[a-zA-Z0-9_]+:[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/;
+        if (!serverRegex.test(value)) {
+            isValid = false;
+            errorMessage = 'Please enter a valid server.';
         }
     }
 

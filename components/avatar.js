@@ -1,4 +1,3 @@
-import "./main.js"
 import { html, css } from "./utils.js"
 
 const avatarTp = html`
@@ -17,7 +16,6 @@ const avatarCss = css`
     --text-color: var(--darkslategray);
     --size: 48px;
     font-family: var(--font-primary);
-    border: 2px solid red;
     --border-radius: 50px;
     border-radius: var(--border-radius);
   }
